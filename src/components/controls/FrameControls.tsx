@@ -19,13 +19,6 @@ export function FrameControls() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-          Frame
-        </Label>
-        <InfoTip text="Adds a solid frame around the lithophane. Strengthens edges and improves print durability." />
-      </div>
-
       <div className="flex items-center justify-between">
         <Label className="text-xs">Enable Frame</Label>
         <Switch

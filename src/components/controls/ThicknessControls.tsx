@@ -1,6 +1,5 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
 import { InfoTip } from '@/components/ui/info-tip';
 
 export function ThicknessControls() {
@@ -8,10 +7,7 @@ export function ThicknessControls() {
   const updateParams = useLithophaneStore((s) => s.updateParams);
 
   return (
-    <div className="space-y-4">
-      <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-        Thickness
-      </Label>
+    <div className="space-y-3">
       <div className="space-y-2">
         <div className="flex justify-between text-xs">
           <span className="flex items-center gap-1">

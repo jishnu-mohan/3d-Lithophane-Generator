@@ -1,26 +1,18 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { InfoTip } from '@/components/ui/info-tip';
 import { ColorPicker } from '@/components/ui/color-picker';
+import { ControlSection, ControlDivider } from './ControlSection';
+import { LightingCards } from './LightingCards';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Eye,
   RotateCw,
   Grid3X3,
   Box,
-  SunMedium,
   Camera,
 } from 'lucide-react';
-import type { CameraPreset, LightingMode } from '@/types/view';
+import type { CameraPreset } from '@/types/view';
 
 const CAMERA_PRESETS: { label: string; value: CameraPreset }[] = [
   { label: 'Front', value: 'front' },
@@ -35,49 +27,23 @@ export function ViewControls() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <Eye className="h-3 w-3 text-muted-foreground/70" />
-        <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-          View Options
-        </Label>
-      </div>
-
-      {/* Lighting Mode */}
-      <div className="space-y-2">
-        <span className="flex items-center gap-1 text-xs">
-          <SunMedium className="h-3 w-3" />
-          Lighting
-        </span>
-        <Select
-          value={viewState.lightingMode}
-          onValueChange={(v) =>
-            updateViewState({ lightingMode: v as LightingMode })
-          }
-        >
-          <SelectTrigger className="h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="no-light">No light</SelectItem>
-            <SelectItem value="back-lighted">Back lighted</SelectItem>
-            <SelectItem value="normal-gradient">Normal gradient</SelectItem>
-          </SelectContent>
-        </Select>
+      <ControlSection label="Lighting">
+        <LightingCards />
 
         {viewState.lightingMode === 'back-lighted' && (
-          <>
+          <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs">Light color</span>
+              <span className="text-xs text-text-secondary">Light color</span>
               <ColorPicker
                 value={viewState.backlightColor}
                 onChange={(c) => updateViewState({ backlightColor: c })}
               />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span>Light intensity</span>
-                <span className="text-muted-foreground">
-                  {Math.round(viewState.backlightIntensity * 100 / 3)}%
+                <span className="text-text-secondary">Intensity</span>
+                <span className="text-mono-readout text-text-tertiary">
+                  {Math.round((viewState.backlightIntensity * 100) / 3)}%
                 </span>
               </div>
               <Slider
@@ -90,65 +56,49 @@ export function ViewControls() {
                 }
               />
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </ControlSection>
 
-      {/* Material Color */}
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-xs">
-          Material Color
-          <InfoTip text="Preview color only — does not affect the exported STL." />
-        </span>
-        <ColorPicker
-          value={viewState.materialColor}
-          onChange={(c) => updateViewState({ materialColor: c })}
-        />
-      </div>
+      <ControlDivider />
+      <ControlSection label="Material">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-xs text-text-secondary">
+            Color
+            <InfoTip text="Preview color only — does not affect the exported STL." />
+          </span>
+          <ColorPicker
+            value={viewState.materialColor}
+            onChange={(c) => updateViewState({ materialColor: c })}
+          />
+        </div>
+      </ControlSection>
 
-      {/* Wireframe */}
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-xs">
-          <Box className="h-3 w-3" />
-          Wireframe
-        </span>
-        <Switch
+      <ControlDivider />
+      <ControlSection label="Display">
+        <ToggleRow
+          icon={<Box className="h-3 w-3" />}
+          label="Wireframe"
           checked={viewState.wireframe}
-          onCheckedChange={(v) => updateViewState({ wireframe: v })}
+          onChange={(v) => updateViewState({ wireframe: v })}
         />
-      </div>
-
-      {/* Auto-rotate */}
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-xs">
-          <RotateCw className="h-3 w-3" />
-          Auto-rotate
-        </span>
-        <Switch
+        <ToggleRow
+          icon={<RotateCw className="h-3 w-3" />}
+          label="Auto-rotate"
           checked={viewState.autoRotate}
-          onCheckedChange={(v) => updateViewState({ autoRotate: v })}
+          onChange={(v) => updateViewState({ autoRotate: v })}
         />
-      </div>
-
-      {/* Grid */}
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-xs">
-          <Grid3X3 className="h-3 w-3" />
-          Show Grid
-        </span>
-        <Switch
+        <ToggleRow
+          icon={<Grid3X3 className="h-3 w-3" />}
+          label="Show grid"
           checked={viewState.showGrid}
-          onCheckedChange={(v) => updateViewState({ showGrid: v })}
+          onChange={(v) => updateViewState({ showGrid: v })}
         />
-      </div>
+      </ControlSection>
 
-      {/* Camera Presets */}
-      <div className="space-y-2">
-        <span className="flex items-center gap-1 text-xs">
-          <Camera className="h-3 w-3" />
-          Camera
-        </span>
-        <div className="grid grid-cols-4 gap-1">
+      <ControlDivider />
+      <ControlSection label="Camera">
+        <div className="grid grid-cols-4 gap-1.5">
           {CAMERA_PRESETS.map(({ label, value }) => (
             <Button
               key={value}
@@ -161,7 +111,33 @@ export function ViewControls() {
             </Button>
           ))}
         </div>
-      </div>
+        <p className="text-[11px] text-text-tertiary mt-2 flex items-center gap-1">
+          <Camera className="h-3 w-3" />
+          Drag in the viewport to orbit · scroll to zoom
+        </p>
+      </ControlSection>
+    </div>
+  );
+}
+
+function ToggleRow({
+  icon,
+  label,
+  checked,
+  onChange,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-0.5">
+      <span className="flex items-center gap-2 text-xs text-text-secondary">
+        {icon}
+        {label}
+      </span>
+      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }

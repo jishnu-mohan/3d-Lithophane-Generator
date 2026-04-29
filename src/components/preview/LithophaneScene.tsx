@@ -13,7 +13,8 @@ export function LithophaneScene() {
   return (
     <Canvas
       camera={{ position: [0, 0, 120], fov: 50, near: 0.1, far: 2000 }}
-      gl={{ antialias: true, preserveDrawingBuffer: true }}
+      gl={{ antialias: true, preserveDrawingBuffer: true, alpha: true }}
+      style={{ background: 'transparent' }}
     >
       {lightingMode === 'no-light' ? (
         <ambientLight intensity={0.8} />

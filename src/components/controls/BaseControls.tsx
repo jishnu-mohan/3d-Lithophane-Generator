@@ -1,6 +1,5 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
 import { InfoTip } from '@/components/ui/info-tip';
 
 export function BaseControls() {
@@ -8,13 +7,7 @@ export function BaseControls() {
   const updateParams = useLithophaneStore((s) => s.updateParams);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-          Base
-        </Label>
-        <InfoTip text="Thickness of the solid back layer behind the image surface. Provides structural support and blocks ambient light for better contrast." />
-      </div>
+    <div className="space-y-3">
       <div className="space-y-2">
         <div className="flex justify-between text-xs">
           <span className="flex items-center gap-1">

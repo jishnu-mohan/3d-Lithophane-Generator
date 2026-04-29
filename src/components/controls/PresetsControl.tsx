@@ -27,11 +27,11 @@ export function PresetsControl() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full h-7 text-xs">
-          <Bookmark className="h-3 w-3 mr-1.5" />
+        <Button variant="outline" size="sm" className="h-9 px-3 gap-1.5 text-xs glass-panel-soft">
+          <Bookmark className="h-3 w-3" />
           Presets
           {presets.length > 0 && (
-            <span className="ml-auto text-muted-foreground">
+            <span className="text-mono-readout text-text-tertiary text-[10px]">
               {presets.length}
             </span>
           )}

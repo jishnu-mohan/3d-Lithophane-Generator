@@ -1,4 +1,5 @@
 import { LithophaneScene } from '@/components/preview/LithophaneScene';
+import { AuroraBackground } from '@/components/ui/aurora-background';
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Loader2 } from 'lucide-react';
 
@@ -7,23 +8,47 @@ export function Viewport() {
   const imageFile = useLithophaneStore((s) => s.imageFile);
 
   return (
-    <div className="relative h-full w-full bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="relative h-full w-full overflow-hidden">
+      <AuroraBackground />
+
+      <div
+        className="absolute inset-0"
+        style={{ zIndex: 'var(--z-canvas)' }}
+      >
+        <LithophaneScene />
+      </div>
+
       {!imageFile && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <p className="text-muted-foreground/50 text-sm font-medium">
-            Upload an image to generate a lithophane
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ zIndex: 'var(--z-hud)' }}
+        >
+          <p className="text-mono-label text-text-tertiary">
+            awaiting source image
           </p>
         </div>
       )}
+
       {isProcessing && (
-        <div className="absolute inset-0 flex items-center justify-center z-20 bg-background/60 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Processing...</span>
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            zIndex: 'var(--z-hud)',
+            background:
+              'radial-gradient(ellipse 60% 40% at 50% 50%, oklch(from var(--surface-base) l c h / 0.7) 0%, transparent 80%)',
+          }}
+        >
+          <div className="flex items-center gap-3 px-4 py-2 glass-panel-soft">
+            <Loader2
+              className="h-4 w-4 animate-spin"
+              style={{ color: 'var(--accent-warm)' }}
+            />
+            <span className="text-mono-readout text-xs text-text-secondary">
+              processing heightmap
+            </span>
           </div>
         </div>
       )}
-      <LithophaneScene />
     </div>
   );
 }

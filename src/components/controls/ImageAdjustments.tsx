@@ -24,13 +24,6 @@ export function ImageAdjustments() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-          Image Adjustments
-        </Label>
-        <InfoTip text="Fine-tune how the image translates to thickness. These adjustments affect the heightmap, not the original image." />
-      </div>
-
       {/* Brightness */}
       <div className="space-y-2">
         <div className="flex justify-between text-xs">

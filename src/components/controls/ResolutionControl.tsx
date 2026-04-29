@@ -1,7 +1,5 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
-import { InfoTip } from '@/components/ui/info-tip';
 
 export function ResolutionControl() {
   const params = useLithophaneStore((s) => s.params);
@@ -13,13 +11,7 @@ export function ResolutionControl() {
   const isHighRes = estimatedTriangles > 2_000_000;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <Label className="text-[11px] font-semibold text-muted-foreground/70 tracking-wider uppercase">
-          Resolution
-        </Label>
-        <InfoTip text="How many pixels per millimeter to sample from the image. Higher values capture more detail but produce larger files and may slow down the preview." />
-      </div>
+    <div className="space-y-3">
       <div className="space-y-2">
         <div className="flex justify-between text-xs">
           <span className="flex items-center gap-1">

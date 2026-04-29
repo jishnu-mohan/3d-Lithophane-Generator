@@ -9,9 +9,10 @@ export function ImageUpload() {
 
   return (
     <div
-      className={`absolute inset-0 z-30 flex items-center justify-center bg-background/70 backdrop-blur-md transition-colors ${
-        isDragging ? 'bg-accent/20' : ''
+      className={`absolute inset-0 flex items-center justify-center transition-colors ${
+        isDragging ? 'bg-[oklch(from_var(--accent-aurora)_l_c_h_/_0.05)]' : ''
       }`}
+      style={{ zIndex: 'var(--z-modal)' }}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -24,17 +25,34 @@ export function ImageUpload() {
       onClick={() => inputRef.current?.click()}
     >
       <div
-        className={`flex flex-col items-center gap-4 rounded-xl border-2 border-dashed p-14 cursor-pointer transition-all duration-200 shadow-2xl shadow-black/20 ${
+        className={`relative flex flex-col items-center gap-5 px-14 py-12 cursor-pointer transition-all duration-200 glass-panel ${
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-border hover:border-primary/40'
+            ? 'glow-aurora-lg'
+            : 'hover:shadow-[0_0_32px_var(--accent-aurora-glow)]'
         }`}
       >
-        <Upload className="h-12 w-12 text-muted-foreground/50" />
-        <div className="text-center">
-          <p className="text-lg font-semibold tracking-tight">Drop an image here</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            or click to browse (JPG, PNG, WebP, BMP)
+        {/* Corner brackets */}
+        <span aria-hidden className="absolute top-2 left-2 w-3 h-3 border-t border-l border-[var(--accent-aurora)]" />
+        <span aria-hidden className="absolute top-2 right-2 w-3 h-3 border-t border-r border-[var(--accent-aurora)]" />
+        <span aria-hidden className="absolute bottom-2 left-2 w-3 h-3 border-b border-l border-[var(--accent-aurora)]" />
+        <span aria-hidden className="absolute bottom-2 right-2 w-3 h-3 border-b border-r border-[var(--accent-aurora)]" />
+
+        <div
+          className="rounded-full p-4"
+          style={{
+            background: 'oklch(from var(--accent-aurora) l c h / 0.08)',
+            boxShadow: 'inset 0 0 24px oklch(from var(--accent-aurora) l c h / 0.15)',
+          }}
+        >
+          <Upload className="h-8 w-8" style={{ color: 'var(--accent-aurora)' }} />
+        </div>
+        <div className="text-center max-w-xs">
+          <p className="text-mono-label mb-2">drop zone · acquire signal</p>
+          <p className="text-lg font-display italic tracking-tight text-text-primary">
+            Drop an image to begin
+          </p>
+          <p className="text-xs text-text-tertiary mt-1.5">
+            or click to browse — JPG · PNG · WebP · BMP
           </p>
         </div>
       </div>
