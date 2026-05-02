@@ -15,18 +15,37 @@ export function useLithophaneGeometry(): THREE.BufferGeometry | null {
 
     let hm = heightmap;
 
-    if (params.borderEnabled && params.borderThickness > 0) {
-      const borderPixels = Math.round(params.borderThickness * params.resolution);
-      hm = addBorder(hm, borderPixels, {
-        frameStyle: params.frameStyle,
-        cornerStyle: params.cornerStyle,
-        cornerRadius: params.cornerRadius,
-        resolution: params.resolution,
-      });
+    if (params.borderEnabled) {
+      const r = params.resolution;
+      const px = (mm: number) => Math.round(mm * r);
+      const borderPixels = {
+        top: px(params.borderThicknessTop),
+        right: px(params.borderThicknessRight),
+        bottom: px(params.borderThicknessBottom),
+        left: px(params.borderThicknessLeft),
+      };
+      const anySide =
+        borderPixels.top > 0 ||
+        borderPixels.right > 0 ||
+        borderPixels.bottom > 0 ||
+        borderPixels.left > 0;
+      if (anySide) {
+        hm = addBorder(hm, borderPixels, {
+          frameStyle: params.frameStyle,
+          cornerStyle: params.cornerStyle,
+          cornerRadius: params.cornerRadius,
+          resolution: r,
+        });
+      }
     }
 
     if (params.borderEnabled && params.hangingHoleEnabled && params.shape === 'flat') {
-      hm = addHangingHole(hm, params.hangingHoleDiameter, params.resolution, params.borderThickness);
+      hm = addHangingHole(
+        hm,
+        params.hangingHoleDiameter,
+        params.resolution,
+        params.borderThicknessTop,
+      );
     }
 
     if (params.standTabEnabled && params.shape === 'flat') {

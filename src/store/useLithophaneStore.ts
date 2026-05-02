@@ -7,10 +7,41 @@ import type { LithophaneState, ParamSection, Preset } from '@/types/store';
 const PRESETS_KEY = 'lithophane-presets';
 const MAX_UNDO = 50;
 
+/**
+ * Migrate legacy params shape:
+ *   borderThickness: number  →  borderThicknessTop/Right/Bottom/Left: number
+ * Older presets stored a single scalar; spread it to all four sides on load.
+ */
+function migrateParams(
+  p: Partial<LithophaneParams> & { borderThickness?: number },
+): Partial<LithophaneParams> {
+  if (
+    typeof p.borderThickness === 'number' &&
+    p.borderThicknessTop === undefined
+  ) {
+    const v = p.borderThickness;
+    const { borderThickness: _legacy, ...rest } = p;
+    void _legacy;
+    return {
+      ...rest,
+      borderThicknessTop: v,
+      borderThicknessRight: v,
+      borderThicknessBottom: v,
+      borderThicknessLeft: v,
+    };
+  }
+  return p;
+}
+
 function loadPresets(): Preset[] {
   try {
     const raw = localStorage.getItem(PRESETS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Preset[];
+    return parsed.map((preset) => ({
+      ...preset,
+      params: { ...DEFAULT_PARAMS, ...migrateParams(preset.params) } as LithophaneParams,
+    }));
   } catch {
     return [];
   }
@@ -41,7 +72,10 @@ const SECTION_KEYS: Record<ParamSection, (keyof LithophaneParams)[]> = {
   ],
   frame: [
     'borderEnabled',
-    'borderThickness',
+    'borderThicknessTop',
+    'borderThicknessRight',
+    'borderThicknessBottom',
+    'borderThicknessLeft',
     'frameStyle',
     'cornerStyle',
     'cornerRadius',
@@ -114,8 +148,9 @@ export const useLithophaneStore = create<LithophaneState>((set, get) => ({
     const preset = get().presets[index];
     if (!preset) return;
     const { undoStack, params } = get();
+    const migrated = migrateParams(preset.params);
     set({
-      params: { ...preset.params },
+      params: { ...DEFAULT_PARAMS, ...migrated } as LithophaneParams,
       undoStack: [...undoStack.slice(-(MAX_UNDO - 1)), params],
       redoStack: [],
     });

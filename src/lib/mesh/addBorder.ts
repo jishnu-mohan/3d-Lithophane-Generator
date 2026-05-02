@@ -8,54 +8,71 @@ export interface FrameOptions {
   resolution: number;
 }
 
+export interface BorderPixels {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
 export function addBorder(
   heightmap: HeightmapData,
-  borderPixels: number,
+  borderPixels: BorderPixels,
   options?: FrameOptions
 ): HeightmapData {
-  if (borderPixels <= 0) return heightmap;
+  const { top, right, bottom, left } = borderPixels;
+  if (top <= 0 && right <= 0 && bottom <= 0 && left <= 0) return heightmap;
 
   const { width, height, data } = heightmap;
-  const newW = width + borderPixels * 2;
-  const newH = height + borderPixels * 2;
+  const newW = width + left + right;
+  const newH = height + top + bottom;
   const newData = new Float32Array(newW * newH);
 
   const frameStyle = options?.frameStyle ?? 'flat';
   const cornerStyle = options?.cornerStyle ?? 'square';
   const cornerRadiusMM = options?.cornerRadius ?? 2;
   const resolution = options?.resolution ?? 4;
-  const cornerRadiusPx = cornerStyle === 'rounded'
-    ? Math.round(cornerRadiusMM * resolution)
-    : 0;
+  const cornerRadiusPx =
+    cornerStyle === 'rounded' ? Math.round(cornerRadiusMM * resolution) : 0;
 
-  // Fill border based on frame style
+  // Per-corner radius cap: arc cannot exceed the smaller of the two adjacent sides.
+  const radiusTL = Math.min(cornerRadiusPx, top, left);
+  const radiusTR = Math.min(cornerRadiusPx, top, right);
+  const radiusBL = Math.min(cornerRadiusPx, bottom, left);
+  const radiusBR = Math.min(cornerRadiusPx, bottom, right);
+
   for (let r = 0; r < newH; r++) {
     for (let c = 0; c < newW; c++) {
       const inContent =
-        r >= borderPixels &&
-        r < borderPixels + height &&
-        c >= borderPixels &&
-        c < borderPixels + width;
+        r >= top && r < top + height && c >= left && c < left + width;
 
       if (inContent) {
-        newData[r * newW + c] = data[(r - borderPixels) * width + (c - borderPixels)];
+        newData[r * newW + c] = data[(r - top) * width + (c - left)];
         continue;
       }
 
-      // Check rounded corner clipping
+      // Rounded corner clipping (per-corner radius)
       if (cornerRadiusPx > 0) {
-        const clipped = isOutsideRoundedCorner(
-          c, r, newW, newH, cornerRadiusPx
-        );
-        if (clipped) {
+        if (
+          isOutsideRoundedCorner(c, r, newW, newH, {
+            tl: radiusTL,
+            tr: radiusTR,
+            bl: radiusBL,
+            br: radiusBR,
+          })
+        ) {
           newData[r * newW + c] = 0;
           continue;
         }
       }
 
-      // Compute border pixel value based on frame style
       newData[r * newW + c] = getBorderValue(
-        c, r, newW, newH, borderPixels, frameStyle
+        c,
+        r,
+        newW,
+        newH,
+        borderPixels,
+        frameStyle,
       );
     }
   }
@@ -68,22 +85,24 @@ function getBorderValue(
   y: number,
   w: number,
   h: number,
-  borderPixels: number,
-  style: FrameStyle
+  borderPixels: BorderPixels,
+  style: FrameStyle,
 ): number {
   if (style === 'flat') return 1.0;
   if (style === 'raised') return 1.3;
 
   // Groove: outer and inner edges at 1.0, middle channel at 0.3
   if (style === 'groove') {
+    const { top, right, bottom, left } = borderPixels;
     const distFromEdge = Math.min(x, y, w - 1 - x, h - 1 - y);
     const distFromContent = Math.min(
-      Math.abs(x - borderPixels),
-      Math.abs(y - borderPixels),
-      Math.abs(x - (w - 1 - borderPixels)),
-      Math.abs(y - (h - 1 - borderPixels))
+      Math.abs(x - left),
+      Math.abs(y - top),
+      Math.abs(x - (w - 1 - right)),
+      Math.abs(y - (h - 1 - bottom)),
     );
-    const grooveWidth = Math.max(1, Math.floor(borderPixels / 3));
+    const minSide = Math.max(1, Math.min(top, right, bottom, left));
+    const grooveWidth = Math.max(1, Math.floor(minSide / 3));
 
     if (distFromEdge < grooveWidth || distFromContent < grooveWidth) {
       return 1.0;
@@ -94,32 +113,39 @@ function getBorderValue(
   return 1.0;
 }
 
+interface CornerRadii {
+  tl: number;
+  tr: number;
+  bl: number;
+  br: number;
+}
+
 function isOutsideRoundedCorner(
   x: number,
   y: number,
   w: number,
   h: number,
-  radius: number
+  radii: CornerRadii,
 ): boolean {
-  // Check each corner
-  const corners = [
-    { cx: radius, cy: radius },                  // top-left
-    { cx: w - 1 - radius, cy: radius },           // top-right
-    { cx: radius, cy: h - 1 - radius },           // bottom-left
-    { cx: w - 1 - radius, cy: h - 1 - radius },   // bottom-right
+  const corners: { cx: number; cy: number; r: number }[] = [
+    { cx: radii.tl, cy: radii.tl, r: radii.tl },
+    { cx: w - 1 - radii.tr, cy: radii.tr, r: radii.tr },
+    { cx: radii.bl, cy: h - 1 - radii.bl, r: radii.bl },
+    { cx: w - 1 - radii.br, cy: h - 1 - radii.br, r: radii.br },
   ];
 
-  for (const { cx, cy } of corners) {
+  for (const { cx, cy, r } of corners) {
+    if (r <= 0) continue;
     const inCornerBox =
-      (x <= cx && y <= cy) ||                   // top-left
-      (x >= cx && y <= cy && cx === w - 1 - radius) ||  // top-right
-      (x <= cx && y >= cy && cy === h - 1 - radius) ||  // bottom-left
-      (x >= cx && y >= cy && cx === w - 1 - radius && cy === h - 1 - radius); // bottom-right
+      (x <= cx && y <= cy) ||
+      (x >= cx && y <= cy && cx === w - 1 - r) ||
+      (x <= cx && y >= cy && cy === h - 1 - r) ||
+      (x >= cx && y >= cy && cx === w - 1 - r && cy === h - 1 - r);
 
     if (inCornerBox) {
       const dx = x - cx;
       const dy = y - cy;
-      if (dx * dx + dy * dy > radius * radius) {
+      if (dx * dx + dy * dy > r * r) {
         return true;
       }
     }

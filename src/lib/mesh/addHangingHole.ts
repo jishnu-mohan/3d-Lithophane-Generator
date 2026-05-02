@@ -4,13 +4,13 @@ export function addHangingHole(
   heightmap: HeightmapData,
   holeDiameterMM: number,
   resolution: number,
-  borderThicknessMM: number
+  borderTopMM: number
 ): HeightmapData {
   const { width, height, data } = heightmap;
   const result = new Float32Array(data);
 
   const radiusPx = Math.round((holeDiameterMM / 2) * resolution);
-  const borderPx = Math.round(borderThicknessMM * resolution);
+  const borderPx = Math.round(borderTopMM * resolution);
 
   // Center hole horizontally, vertically centered within top border
   const cx = Math.round(width / 2);

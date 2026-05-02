@@ -22,7 +22,10 @@ export interface LithophaneParams {
 
   // Frame
   borderEnabled: boolean;
-  borderThickness: number;
+  borderThicknessTop: number;
+  borderThicknessRight: number;
+  borderThicknessBottom: number;
+  borderThicknessLeft: number;
   frameStyle: FrameStyle;
   cornerStyle: CornerStyle;
   cornerRadius: number;
@@ -60,7 +63,10 @@ export const DEFAULT_PARAMS: LithophaneParams = {
 
   // Frame
   borderEnabled: true,
-  borderThickness: 2,
+  borderThicknessTop: 2,
+  borderThicknessRight: 2,
+  borderThicknessBottom: 2,
+  borderThicknessLeft: 2,
   frameStyle: 'flat',
   cornerStyle: 'square',
   cornerRadius: 2,
