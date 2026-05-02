@@ -1,6 +1,7 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
 import { InfoTip } from '@/components/ui/info-tip';
+import { DEFAULT_PARAMS } from '@/types/lithophane';
 
 export function ThicknessControls() {
   const params = useLithophaneStore((s) => s.params);
@@ -21,6 +22,7 @@ export function ThicknessControls() {
           min={0.1}
           max={2}
           step={0.1}
+          snapDefault={DEFAULT_PARAMS.minThickness}
           onValueChange={([v]) => updateParams({ minThickness: v })}
         />
       </div>
@@ -37,6 +39,7 @@ export function ThicknessControls() {
           min={1}
           max={8}
           step={0.1}
+          snapDefault={DEFAULT_PARAMS.maxThickness}
           onValueChange={([v]) => updateParams({ maxThickness: v })}
         />
       </div>

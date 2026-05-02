@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { FrameStyle, CornerStyle } from '@/types/lithophane';
+import { DEFAULT_PARAMS, type FrameStyle, type CornerStyle } from '@/types/lithophane';
 
 export function FrameControls() {
   const params = useLithophaneStore((s) => s.params);
@@ -45,6 +45,7 @@ export function FrameControls() {
               min={0.5}
               max={10}
               step={0.5}
+              snapDefault={DEFAULT_PARAMS.borderThickness}
               onValueChange={([v]) => updateParams({ borderThickness: v })}
             />
           </div>
@@ -108,6 +109,7 @@ export function FrameControls() {
                 min={1}
                 max={10}
                 step={0.5}
+                snapDefault={DEFAULT_PARAMS.cornerRadius}
                 onValueChange={([v]) => updateParams({ cornerRadius: v })}
               />
             </div>
@@ -139,6 +141,7 @@ export function FrameControls() {
                     min={2}
                     max={10}
                     step={0.5}
+                    snapDefault={DEFAULT_PARAMS.hangingHoleDiameter}
                     onValueChange={([v]) => updateParams({ hangingHoleDiameter: v })}
                   />
                 </div>

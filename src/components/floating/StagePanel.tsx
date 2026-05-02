@@ -34,7 +34,6 @@ export function StagePanel({ active, collapsed, onCollapsedChange }: StagePanelP
       collapsed={collapsed}
       onCollapsedChange={onCollapsedChange}
       title={stage.label}
-      kicker={`Stage ${stage.index} · ${stage.blurb}`}
       widthClass="w-[340px]"
       positionClass="left-4 top-20"
       className="bottom-20"

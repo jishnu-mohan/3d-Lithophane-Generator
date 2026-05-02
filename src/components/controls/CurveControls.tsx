@@ -1,6 +1,7 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
 import { ControlSection, ControlDivider } from './ControlSection';
+import { DEFAULT_PARAMS } from '@/types/lithophane';
 
 export function CurveControls() {
   const params = useLithophaneStore((s) => s.params);
@@ -33,6 +34,7 @@ export function CurveControls() {
             min={0}
             max={1}
             step={0.01}
+            snapDefault={DEFAULT_PARAMS.curveAmount}
             onValueChange={([v]) => updateParams({ curveAmount: v })}
           />
         </div>

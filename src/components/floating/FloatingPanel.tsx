@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,8 @@ interface FloatingPanelProps {
   /** Right-aligned slot in the panel header (e.g. action buttons). */
   headerExtras?: ReactNode;
 }
+
+const TRANSITION = { duration: 0.26, ease: [0.22, 1, 0.36, 1] as const };
 
 /**
  * Aurora floating panel: a frosted-glass card anchored to one edge of the
@@ -43,69 +46,84 @@ export function FloatingPanel({
   headerExtras,
 }: FloatingPanelProps) {
   const headingId = useId();
-
-  if (collapsed) {
-    return (
-      <DockedTab
-        title={title}
-        anchor={anchor}
-        onExpand={() => onCollapsedChange(false)}
-        positionClass={positionClass}
-      />
-    );
-  }
+  const fromX = anchor === 'left' ? -16 : anchor === 'right' ? 16 : 0;
+  const fromY = anchor === 'bottom-right' ? 16 : 0;
 
   return (
-    <section
-      role="region"
-      aria-labelledby={headingId}
-      className={cn(
-        'pointer-events-auto absolute flex flex-col',
-        'glass-panel',
-        widthClass,
-        positionClass,
-        className,
-      )}
-      style={{
-        zIndex: 'var(--z-panel)',
-        maxHeight: 'calc(100% - 2rem)',
-      }}
-      onWheelCapture={(e) => e.stopPropagation()}
-    >
-      <header className="flex items-center justify-between gap-2 border-b border-stroke-subtle px-4 pt-3 pb-2.5">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          {kicker && (
-            <span className="text-mono-label text-[var(--text-tertiary)] truncate">
-              {kicker}
-            </span>
+    <AnimatePresence mode="wait" initial={false}>
+      {collapsed ? (
+        <motion.div
+          key="docked"
+          initial={{ opacity: 0, scale: 0.92, x: fromX / 2, y: fromY / 2 }}
+          animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92, x: fromX / 2, y: fromY / 2 }}
+          transition={TRANSITION}
+        >
+          <DockedTab
+            title={title}
+            anchor={anchor}
+            onExpand={() => onCollapsedChange(false)}
+            positionClass={positionClass}
+          />
+        </motion.div>
+      ) : (
+        <motion.section
+          key="panel"
+          role="region"
+          aria-labelledby={headingId}
+          initial={{ opacity: 0, x: fromX, y: fromY }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={{ opacity: 0, x: fromX, y: fromY }}
+          transition={TRANSITION}
+          className={cn(
+            'pointer-events-auto absolute flex flex-col',
+            'glass-panel',
+            widthClass,
+            positionClass,
+            className,
           )}
-          <h2
-            id={headingId}
-            className="text-sm font-medium tracking-tight text-text-primary truncate"
-          >
-            {title}
-          </h2>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {headerExtras}
-          <button
-            type="button"
-            onClick={() => onCollapsedChange(true)}
-            aria-label={`Collapse ${title}`}
-            className={cn(
-              'inline-flex h-6 w-6 items-center justify-center rounded-md',
-              'text-text-tertiary hover:text-text-primary',
-              'hover:bg-[oklch(1_0_0_/_0.05)] transition-colors',
-            )}
-          >
-            <CollapseIcon anchor={anchor} />
-          </button>
-        </div>
-      </header>
-      <div className="flex-1 overflow-y-auto scrollbar-none px-4 py-4">
-        {children}
-      </div>
-    </section>
+          style={{
+            zIndex: 'var(--z-panel)',
+            maxHeight: 'calc(100% - 2rem)',
+          }}
+          onWheelCapture={(e) => e.stopPropagation()}
+        >
+          <header className="flex items-center justify-between gap-2 border-b border-stroke-subtle px-4 pt-3 pb-2.5">
+            <div className="flex flex-col gap-0.5 min-w-0">
+              {kicker && (
+                <span className="text-mono-label text-[var(--text-tertiary)] truncate">
+                  {kicker}
+                </span>
+              )}
+              <h2
+                id={headingId}
+                className="text-sm font-medium tracking-tight text-text-primary truncate"
+              >
+                {title}
+              </h2>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {headerExtras}
+              <button
+                type="button"
+                onClick={() => onCollapsedChange(true)}
+                aria-label={`Collapse ${title}`}
+                className={cn(
+                  'inline-flex h-6 w-6 items-center justify-center rounded-md',
+                  'text-text-tertiary hover:text-text-primary',
+                  'hover:bg-[oklch(1_0_0_/_0.05)] transition-colors',
+                )}
+              >
+                <CollapseIcon anchor={anchor} />
+              </button>
+            </div>
+          </header>
+          <div className="flex-1 overflow-y-auto scrollbar-none px-4 py-4">
+            {children}
+          </div>
+        </motion.section>
+      )}
+    </AnimatePresence>
   );
 }
 

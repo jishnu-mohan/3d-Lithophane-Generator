@@ -12,7 +12,7 @@ export function ImageUpload() {
       className={`absolute inset-0 flex items-center justify-center transition-colors ${
         isDragging ? 'bg-[oklch(from_var(--accent-aurora)_l_c_h_/_0.05)]' : ''
       }`}
-      style={{ zIndex: 'var(--z-modal)' }}
+      style={{ zIndex: 15 }}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragging(true);
@@ -22,10 +22,12 @@ export function ImageUpload() {
         setIsDragging(false);
         handleDrop(e);
       }}
-      onClick={() => inputRef.current?.click()}
     >
-      <div
-        className={`relative flex flex-col items-center gap-5 px-14 py-12 cursor-pointer transition-all duration-200 glass-panel ${
+      <button
+        type="button"
+        aria-label="Upload image"
+        onClick={() => inputRef.current?.click()}
+        className={`relative flex flex-col items-center gap-5 px-14 py-12 cursor-pointer transition-all duration-200 glass-panel focus-visible:outline-none focus-visible:shadow-[0_0_32px_var(--accent-aurora-glow)] ${
           isDragging
             ? 'glow-aurora-lg'
             : 'hover:shadow-[0_0_32px_var(--accent-aurora-glow)]'
@@ -55,7 +57,7 @@ export function ImageUpload() {
             or click to browse — JPG · PNG · WebP · BMP
           </p>
         </div>
-      </div>
+      </button>
       <input
         ref={inputRef}
         type="file"

@@ -1,21 +1,13 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { FloatingPanel } from './FloatingPanel';
 import { ControlSection, ControlDivider } from '@/components/controls/ControlSection';
-import { Button } from '@/components/ui/button';
+import { ColorPicker } from '@/components/ui/color-picker';
 import { Switch } from '@/components/ui/switch';
 import {
   RotateCw,
   Grid3X3,
   Box as BoxIcon,
 } from 'lucide-react';
-import type { CameraPreset } from '@/types/view';
-
-const CAMERA_FACES: { label: string; value: CameraPreset; placement: string }[] = [
-  { label: 'Top', value: 'top', placement: 'col-start-2 row-start-1' },
-  { label: 'Side', value: 'side', placement: 'col-start-1 row-start-2' },
-  { label: 'Front', value: 'front', placement: 'col-start-2 row-start-2' },
-  { label: 'Back', value: 'back', placement: 'col-start-3 row-start-2' },
-];
 
 interface InspectorPanelProps {
   collapsed: boolean;
@@ -30,29 +22,23 @@ export function InspectorPanel({ collapsed, onCollapsedChange }: InspectorPanelP
     <FloatingPanel
       anchor="right"
       title="Inspector"
-      kicker="View · Camera"
+      kicker="View · Material"
       collapsed={collapsed}
       onCollapsedChange={onCollapsedChange}
       widthClass="w-[260px]"
-      positionClass="right-4 top-20"
+      positionClass="right-4 top-36"
     >
       <div className="space-y-4">
-        <ControlSection label="Camera">
-          <div className="grid grid-cols-3 grid-rows-2 gap-1.5 max-w-[180px] mx-auto">
-            {CAMERA_FACES.map(({ label, value, placement }) => (
-              <Button
-                key={value}
-                variant="outline"
-                size="sm"
-                className={`h-8 text-[10px] px-1 ${placement}`}
-                onClick={() => updateViewState({ cameraPreset: value })}
-              >
-                {label}
-              </Button>
-            ))}
+        <ControlSection label="Material">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-text-secondary">Surface color</span>
+            <ColorPicker
+              value={viewState.materialColor}
+              onChange={(c) => updateViewState({ materialColor: c })}
+            />
           </div>
-          <p className="text-[11px] text-text-tertiary mt-2 text-center">
-            Drag to orbit · scroll to zoom
+          <p className="text-[11px] text-text-tertiary mt-2">
+            Preview only — not exported with STL.
           </p>
         </ControlSection>
 
@@ -78,6 +64,13 @@ export function InspectorPanel({ collapsed, onCollapsedChange }: InspectorPanelP
             onChange={(v) => updateViewState({ showGrid: v })}
           />
         </ControlSection>
+
+        <ControlDivider />
+
+        <p className="text-[11px] text-text-tertiary leading-relaxed">
+          Use the cube in the bottom-left to orient the camera. Drag the
+          viewport to orbit · scroll to zoom.
+        </p>
       </div>
     </FloatingPanel>
   );

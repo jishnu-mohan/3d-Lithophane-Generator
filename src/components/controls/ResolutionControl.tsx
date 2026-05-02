@@ -1,5 +1,6 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
+import { DEFAULT_PARAMS } from '@/types/lithophane';
 
 export function ResolutionControl() {
   const params = useLithophaneStore((s) => s.params);
@@ -24,6 +25,7 @@ export function ResolutionControl() {
           min={1}
           max={10}
           step={1}
+          snapDefault={DEFAULT_PARAMS.resolution}
           onValueChange={([v]) => updateParams({ resolution: v })}
         />
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

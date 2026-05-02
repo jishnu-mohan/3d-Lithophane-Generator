@@ -55,6 +55,7 @@ export function StageTrail({ active, onChange }: StageTrailProps) {
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(stage.id)}
             onKeyDown={(e) => handleKey(e, i)}
+            title={stage.blurb}
             className={cn(
               'group relative flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors',
               isActive
@@ -65,12 +66,12 @@ export function StageTrail({ active, onChange }: StageTrailProps) {
             <span
               className={cn(
                 'text-mono-readout text-[10px]',
-                isActive ? 'text-accent-aurora' : 'text-text-tertiary',
+                isActive ? 'text-accent-aurora font-semibold' : 'text-text-tertiary',
               )}
             >
               {stage.index}
             </span>
-            <span className="text-xs font-medium tracking-tight">
+            <span className="text-xs font-medium tracking-tight whitespace-nowrap">
               {stage.label}
             </span>
             {isActive && (

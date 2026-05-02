@@ -1,9 +1,17 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid } from '@react-three/drei';
+import { OrbitControls, Grid, GizmoHelper, GizmoViewcube } from '@react-three/drei';
 import { LithophaneMesh } from './LithophaneMesh';
 import { Backlight } from './BacklightPlane';
 import { CameraController } from './CameraController';
 import { useLithophaneStore } from '@/store/useLithophaneStore';
+
+// Aurora-themed hex approximations of the OKLCH tokens (drei needs CSS hex / three.js Color).
+const GIZMO_COLORS = {
+  face: '#1c2236',         // surface-elevated approx
+  hover: '#82d6e5',        // accent-aurora approx
+  text: '#f0f4ff',         // text-primary approx
+  stroke: '#4ba0b8',       // stroke-aurora approx
+};
 
 export function LithophaneScene() {
   const { showGrid, autoRotate, lightingMode } = useLithophaneStore(
@@ -47,7 +55,17 @@ export function LithophaneScene() {
         maxDistance={500}
         autoRotate={autoRotate}
         autoRotateSpeed={2}
+        makeDefault
       />
+      <GizmoHelper alignment="top-right" margin={[64, 64]}>
+        <GizmoViewcube
+          color={GIZMO_COLORS.face}
+          hoverColor={GIZMO_COLORS.hover}
+          textColor={GIZMO_COLORS.text}
+          strokeColor={GIZMO_COLORS.stroke}
+          opacity={0.92}
+        />
+      </GizmoHelper>
     </Canvas>
   );
 }

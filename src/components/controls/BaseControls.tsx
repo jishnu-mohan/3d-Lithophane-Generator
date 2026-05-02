@@ -1,6 +1,7 @@
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
 import { InfoTip } from '@/components/ui/info-tip';
+import { DEFAULT_PARAMS } from '@/types/lithophane';
 
 export function BaseControls() {
   const params = useLithophaneStore((s) => s.params);
@@ -23,6 +24,7 @@ export function BaseControls() {
           min={0}
           max={3}
           step={0.1}
+          snapDefault={DEFAULT_PARAMS.baseThickness}
           onValueChange={([v]) => updateParams({ baseThickness: v })}
         />
       </div>

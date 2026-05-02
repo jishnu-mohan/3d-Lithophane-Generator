@@ -9,7 +9,7 @@ import {
   FlipVertical,
   RotateCw,
 } from 'lucide-react';
-import type { ImageRotation } from '@/types/lithophane';
+import { DEFAULT_PARAMS, type ImageRotation } from '@/types/lithophane';
 
 const ROTATIONS: { label: string; value: ImageRotation }[] = [
   { label: '0°', value: 0 },
@@ -38,6 +38,7 @@ export function ImageAdjustments() {
           min={-100}
           max={100}
           step={1}
+          snapDefault={DEFAULT_PARAMS.brightness}
           onValueChange={([v]) => updateParams({ brightness: v })}
         />
       </div>
@@ -56,6 +57,7 @@ export function ImageAdjustments() {
           min={-100}
           max={100}
           step={1}
+          snapDefault={DEFAULT_PARAMS.contrast}
           onValueChange={([v]) => updateParams({ contrast: v })}
         />
       </div>
@@ -74,6 +76,7 @@ export function ImageAdjustments() {
           min={0.1}
           max={3.0}
           step={0.05}
+          snapDefault={DEFAULT_PARAMS.gamma}
           onValueChange={([v]) => updateParams({ gamma: v })}
         />
       </div>
@@ -92,6 +95,7 @@ export function ImageAdjustments() {
           min={0}
           max={100}
           step={1}
+          snapDefault={DEFAULT_PARAMS.sharpness}
           onValueChange={([v]) => updateParams({ sharpness: v })}
         />
       </div>
