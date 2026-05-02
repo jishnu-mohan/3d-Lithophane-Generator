@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { RotateCcw } from 'lucide-react';
 import { useLithophaneStore } from '@/store/useLithophaneStore';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { InfoTip } from '@/components/ui/info-tip';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -181,38 +183,20 @@ export function FrameControls() {
               </div>
               {params.hangingHoleEnabled && (
                 <>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span>Position X</span>
-                      <span className="text-mono-readout text-text-tertiary">
-                        {Math.round(params.hangingHoleX * 100)}%
-                      </span>
-                    </div>
-                    <Slider
-                      value={[params.hangingHoleX]}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      snapDefault={DEFAULT_PARAMS.hangingHoleX}
-                      onValueChange={([v]) => updateParams({ hangingHoleX: v })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span>Position Y</span>
-                      <span className="text-mono-readout text-text-tertiary">
-                        {Math.round(params.hangingHoleY * 100)}%
-                      </span>
-                    </div>
-                    <Slider
-                      value={[params.hangingHoleY]}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      snapDefault={DEFAULT_PARAMS.hangingHoleY}
-                      onValueChange={([v]) => updateParams({ hangingHoleY: v })}
-                    />
-                  </div>
+                  <PositionRow
+                    label="Position X"
+                    norm={params.hangingHoleX}
+                    sizeMM={params.widthMM}
+                    snapDefault={DEFAULT_PARAMS.hangingHoleX}
+                    onChange={(v) => updateParams({ hangingHoleX: v })}
+                  />
+                  <PositionRow
+                    label="Position Y"
+                    norm={params.hangingHoleY}
+                    sizeMM={params.heightMM}
+                    snapDefault={DEFAULT_PARAMS.hangingHoleY}
+                    onChange={(v) => updateParams({ hangingHoleY: v })}
+                  />
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs">
                       <span>Hole Diameter</span>
@@ -249,6 +233,124 @@ export function FrameControls() {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function PositionRow({
+  label,
+  norm,
+  sizeMM,
+  snapDefault,
+  onChange,
+}: {
+  label: string;
+  norm: number;
+  sizeMM: number;
+  snapDefault: number;
+  onChange: (next: number) => void;
+}) {
+  const mm = norm * sizeMM;
+  const [draft, setDraft] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
+
+  function commitDraft(raw: string) {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      setDraft(null);
+      return;
+    }
+    const clamped = Math.min(sizeMM, Math.max(0, parsed));
+    onChange(sizeMM > 0 ? clamped / sizeMM : 0);
+    setDraft(null);
+  }
+
+  const isDefault = Math.abs(norm - snapDefault) < 1e-6;
+
+  return (
+    <div className="group/row space-y-2">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <span>{label}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(null);
+              onChange(snapDefault);
+            }}
+            disabled={isDefault}
+            title={`Reset ${label.toLowerCase()} to ${(snapDefault * sizeMM).toFixed(1)} mm`}
+            aria-label={`Reset ${label.toLowerCase()}`}
+            className={cn(
+              'inline-flex h-4 w-4 items-center justify-center rounded',
+              'text-text-tertiary transition-colors',
+              'hover:text-accent-aurora',
+              'disabled:pointer-events-none disabled:opacity-30',
+            )}
+          >
+            <RotateCcw className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              'flex items-center rounded-md border bg-[oklch(from_var(--surface-base)_l_c_h_/_0.5)]',
+              'transition-colors',
+              focused
+                ? 'border-[var(--accent-aurora-glow)] shadow-[inset_0_0_8px_var(--accent-aurora-glow)]'
+                : 'border-stroke-subtle',
+            )}
+          >
+            <input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              max={sizeMM}
+              step={0.1}
+              value={draft ?? mm.toFixed(2)}
+              onFocus={(e) => {
+                setFocused(true);
+                e.currentTarget.select();
+              }}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={(e) => {
+                setFocused(false);
+                if (draft !== null) commitDraft(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  commitDraft(e.currentTarget.value);
+                  e.currentTarget.blur();
+                } else if (e.key === 'Escape') {
+                  setDraft(null);
+                  e.currentTarget.blur();
+                }
+              }}
+              className={cn(
+                'w-14 bg-transparent border-0 outline-none text-mono-readout text-xs text-text-primary text-right',
+                'px-2 py-0.5',
+                '[&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden',
+                '[appearance:textfield]',
+              )}
+            />
+            <span className="pr-2 text-mono-label text-[10px] text-text-tertiary">
+              mm
+            </span>
+          </div>
+          <span className="w-9 text-right text-mono-readout text-text-tertiary tabular-nums">
+            {Math.round(norm * 100)}%
+          </span>
+        </div>
+      </div>
+      <Slider
+        value={[norm]}
+        min={0}
+        max={1}
+        step={0.01}
+        snapDefault={snapDefault}
+        onValueChange={([v]) => onChange(v)}
+      />
     </div>
   );
 }

@@ -47,8 +47,7 @@ export function ControlSection({
             aria-label={`Reset ${label.toLowerCase()}`}
             className={cn(
               'inline-flex h-5 w-5 items-center justify-center rounded',
-              'text-text-tertiary opacity-0 transition-opacity',
-              'group-hover/section:opacity-100 focus:opacity-100',
+              'text-text-tertiary transition-colors',
               'hover:text-accent-aurora',
             )}
           >
