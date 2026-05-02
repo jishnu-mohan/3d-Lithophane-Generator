@@ -328,3 +328,29 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Basic UI mode — toggle for low-power machines.
+ * Drops the expensive bits: backdrop-filter, drifting aurora bglooms, glow
+ * box-shadows, and all animations. Layout, fonts, and colors stay intact.
+ */
+.basic-ui .glass-panel,
+.basic-ui .glass-panel-soft {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: var(--surface-elevated) !important;
+  box-shadow:
+    0 0 0 1px var(--stroke-subtle),
+    0 8px 16px -8px oklch(0 0 0 / 0.5) !important;
+}
+.basic-ui .glow-aurora,
+.basic-ui .glow-aurora-lg,
+.basic-ui .glow-warm {
+  box-shadow: none !important;
+}
+.basic-ui *,
+.basic-ui *::before,
+.basic-ui *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

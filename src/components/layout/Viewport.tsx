@@ -1,15 +1,17 @@
 import { LithophaneScene } from '@/components/preview/LithophaneScene';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 import { useLithophaneStore } from '@/store/useLithophaneStore';
+import { useUIMode } from '@/lib/ui-mode';
 import { Loader2 } from 'lucide-react';
 
 export function Viewport() {
   const isProcessing = useLithophaneStore((s) => s.isProcessing);
   const imageFile = useLithophaneStore((s) => s.imageFile);
+  const [uiMode] = useUIMode();
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <AuroraBackground />
+      {uiMode === 'aurora' && <AuroraBackground />}
 
       <div
         className="absolute inset-0"
