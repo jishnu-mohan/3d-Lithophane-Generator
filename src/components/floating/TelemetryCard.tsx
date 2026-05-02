@@ -33,7 +33,7 @@ export function TelemetryCard({ className }: { className?: string }) {
     >
       <div className="flex items-center justify-between gap-3 border-b border-stroke-subtle px-3 py-2">
         <span className="text-mono-label">Telemetry</span>
-        <LiveDot active={isProcessing} />
+        {isProcessing && <ProcessingDot />}
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 px-3 py-3">
         <Readout label="Source" value={heightmap ? `${heightmap.width}×${heightmap.height} px` : '—'} />
@@ -73,28 +73,19 @@ function Readout({
   );
 }
 
-function LiveDot({ active }: { active: boolean }) {
+function ProcessingDot() {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span
         aria-hidden
         className="relative inline-block h-1.5 w-1.5 rounded-full"
         style={{
-          background: active ? 'var(--accent-warm)' : 'var(--accent-aurora)',
-          boxShadow: active
-            ? '0 0 8px var(--accent-warm-glow)'
-            : '0 0 6px var(--accent-aurora-glow)',
-          animation: active ? 'aurora-pulse 1.4s ease-in-out infinite' : undefined,
+          background: 'var(--accent-warm)',
+          boxShadow: '0 0 8px var(--accent-warm-glow)',
+          animation: 'aurora-pulse 1.4s ease-in-out infinite',
         }}
       />
-      <span
-        className={cn(
-          'text-mono-label',
-          active ? 'text-accent-warm' : 'text-text-tertiary',
-        )}
-      >
-        {active ? 'live' : 'idle'}
-      </span>
+      <span className="text-mono-label text-accent-warm">processing</span>
     </span>
   );
 }

@@ -68,7 +68,7 @@ export function InspectorPanel({ collapsed, onCollapsedChange }: InspectorPanelP
         <ControlDivider />
 
         <p className="text-[11px] text-text-tertiary leading-relaxed">
-          Use the cube in the bottom-left to orient the camera. Drag the
+          Use the cube in the top-right to orient the camera. Drag the
           viewport to orbit · scroll to zoom.
         </p>
       </div>
