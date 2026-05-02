@@ -4,6 +4,7 @@ import { generateMesh } from '@/lib/mesh/meshFactory';
 import { addBorder } from '@/lib/mesh/addBorder';
 import { addHangingHole } from '@/lib/mesh/addHangingHole';
 import { addStandTab } from '@/lib/mesh/addStandTab';
+import { transformHeightmap } from '@/lib/mesh/transformHeightmap';
 import type * as THREE from 'three';
 
 export function useLithophaneGeometry(): THREE.BufferGeometry | null {
@@ -14,6 +15,19 @@ export function useLithophaneGeometry(): THREE.BufferGeometry | null {
     if (!heightmap) return null;
 
     let hm = heightmap;
+
+    // Transform the image content within its grid (offset + zoom + rotation)
+    // before any border is added, so the frame stays at full thickness on all
+    // sides. Vacated cells fill with 0 (renders as flat base inside the frame).
+    {
+      const r = params.resolution;
+      hm = transformHeightmap(hm, {
+        offsetXPx: params.imageOffsetX * r,
+        offsetYPx: params.imageOffsetY * r,
+        zoom: params.imageZoom,
+        rotationRad: (params.imageRotationDeg * Math.PI) / 180,
+      });
+    }
 
     if (params.borderEnabled) {
       const r = params.resolution;

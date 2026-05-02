@@ -35,6 +35,15 @@ export interface LithophaneParams {
   hangingHoleX: number;
   /** 0–1 vertical position of the hole (0 = top edge, 1 = bottom edge). */
   hangingHoleY: number;
+  /**
+   * Image transform within the bordered area. Applied as a single resample
+   * pass before the frame is added — the frame is unaffected. Vacated cells
+   * fill with 0 (flat base).
+   */
+  imageOffsetX: number; // mm, positive shifts content right
+  imageOffsetY: number; // mm, positive shifts content down
+  imageZoom: number; // 1 = native, >1 zooms in (crops at edges)
+  imageRotationDeg: number; // continuous, degrees clockwise
   standTabEnabled: boolean;
 
   // Image adjustments
@@ -78,6 +87,10 @@ export const DEFAULT_PARAMS: LithophaneParams = {
   hangingHoleDiameter: 4,
   hangingHoleX: 0.5,
   hangingHoleY: 0.05,
+  imageOffsetX: 0,
+  imageOffsetY: 0,
+  imageZoom: 1,
+  imageRotationDeg: 0,
   standTabEnabled: false,
 
   // Image adjustments

@@ -103,6 +103,50 @@ export function FrameControls() {
             )}
           </div>
 
+          {/* Image Transform — moves / scales / rotates the image inside the frame */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1.5 text-xs">
+              <span>Image Transform</span>
+              <InfoTip text="Move, scale, or rotate the image within the frame. The frame stays intact; vacated area becomes flat base." />
+            </div>
+            <OffsetRow
+              label="Offset X"
+              value={params.imageOffsetX}
+              minMM={-params.widthMM / 2}
+              maxMM={params.widthMM / 2}
+              onChange={(v) => updateParams({ imageOffsetX: v })}
+            />
+            <OffsetRow
+              label="Offset Y"
+              value={params.imageOffsetY}
+              minMM={-params.heightMM / 2}
+              maxMM={params.heightMM / 2}
+              onChange={(v) => updateParams({ imageOffsetY: v })}
+            />
+            <NumericRow
+              label="Zoom"
+              unit="×"
+              value={params.imageZoom}
+              min={0.25}
+              max={4}
+              step={0.05}
+              decimals={2}
+              defaultValue={1}
+              onChange={(v) => updateParams({ imageZoom: v })}
+            />
+            <NumericRow
+              label="Rotation"
+              unit="°"
+              value={params.imageRotationDeg}
+              min={-180}
+              max={180}
+              step={1}
+              decimals={0}
+              defaultValue={0}
+              onChange={(v) => updateParams({ imageRotationDeg: v })}
+            />
+          </div>
+
           {/* Frame Style */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
@@ -349,6 +393,244 @@ function PositionRow({
         max={1}
         step={0.01}
         snapDefault={snapDefault}
+        onValueChange={([v]) => onChange(v)}
+      />
+    </div>
+  );
+}
+
+function OffsetRow({
+  label,
+  value,
+  minMM,
+  maxMM,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  minMM: number;
+  maxMM: number;
+  onChange: (next: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
+
+  // Clamp display so the slider stays in range when border widths shrink.
+  const clamped = Math.min(maxMM, Math.max(minMM, value));
+  const isDefault = Math.abs(clamped) < 1e-6;
+  const sliderRange = Math.max(0.5, maxMM - minMM);
+  const sliderStep = sliderRange < 4 ? 0.1 : 0.5;
+  const disabled = sliderRange < 0.1;
+
+  function commitDraft(raw: string) {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      setDraft(null);
+      return;
+    }
+    onChange(Math.min(maxMM, Math.max(minMM, parsed)));
+    setDraft(null);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-secondary">{label}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(null);
+              onChange(0);
+            }}
+            disabled={isDefault}
+            title={`Reset ${label.toLowerCase()} to 0 mm`}
+            aria-label={`Reset ${label.toLowerCase()}`}
+            className={cn(
+              'inline-flex h-4 w-4 items-center justify-center rounded',
+              'text-text-tertiary transition-colors',
+              'hover:text-accent-aurora',
+              'disabled:pointer-events-none disabled:opacity-30',
+            )}
+          >
+            <RotateCcw className="h-3 w-3" />
+          </button>
+        </div>
+        <div
+          className={cn(
+            'flex items-center rounded-md border bg-[oklch(from_var(--surface-base)_l_c_h_/_0.5)]',
+            'transition-colors',
+            focused
+              ? 'border-[var(--accent-aurora-glow)] shadow-[inset_0_0_8px_var(--accent-aurora-glow)]'
+              : 'border-stroke-subtle',
+          )}
+        >
+          <input
+            type="number"
+            inputMode="decimal"
+            min={minMM}
+            max={maxMM}
+            step={0.1}
+            disabled={disabled}
+            value={draft ?? clamped.toFixed(1)}
+            onFocus={(e) => {
+              setFocused(true);
+              e.currentTarget.select();
+            }}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={(e) => {
+              setFocused(false);
+              if (draft !== null) commitDraft(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitDraft(e.currentTarget.value);
+                e.currentTarget.blur();
+              } else if (e.key === 'Escape') {
+                setDraft(null);
+                e.currentTarget.blur();
+              }
+            }}
+            className={cn(
+              'w-14 bg-transparent border-0 outline-none text-mono-readout text-xs text-text-primary text-right',
+              'px-2 py-0.5',
+              '[&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden',
+              '[appearance:textfield]',
+            )}
+          />
+          <span className="pr-2 text-mono-label text-[10px] text-text-tertiary">
+            mm
+          </span>
+        </div>
+      </div>
+      <Slider
+        value={[clamped]}
+        min={minMM}
+        max={maxMM}
+        step={sliderStep}
+        snapDefault={0}
+        disabled={disabled}
+        onValueChange={([v]) => onChange(v)}
+      />
+    </div>
+  );
+}
+
+function NumericRow({
+  label,
+  unit,
+  value,
+  min,
+  max,
+  step,
+  decimals,
+  defaultValue,
+  onChange,
+}: {
+  label: string;
+  unit: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  decimals: number;
+  defaultValue: number;
+  onChange: (next: number) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
+
+  const clamped = Math.min(max, Math.max(min, value));
+  const isDefault = Math.abs(clamped - defaultValue) < Math.max(step / 2, 1e-6);
+
+  function commitDraft(raw: string) {
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+      setDraft(null);
+      return;
+    }
+    onChange(Math.min(max, Math.max(min, parsed)));
+    setDraft(null);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-secondary">{label}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(null);
+              onChange(defaultValue);
+            }}
+            disabled={isDefault}
+            title={`Reset ${label.toLowerCase()} to ${defaultValue}${unit}`}
+            aria-label={`Reset ${label.toLowerCase()}`}
+            className={cn(
+              'inline-flex h-4 w-4 items-center justify-center rounded',
+              'text-text-tertiary transition-colors',
+              'hover:text-accent-aurora',
+              'disabled:pointer-events-none disabled:opacity-30',
+            )}
+          >
+            <RotateCcw className="h-3 w-3" />
+          </button>
+        </div>
+        <div
+          className={cn(
+            'flex items-center rounded-md border bg-[oklch(from_var(--surface-base)_l_c_h_/_0.5)]',
+            'transition-colors',
+            focused
+              ? 'border-[var(--accent-aurora-glow)] shadow-[inset_0_0_8px_var(--accent-aurora-glow)]'
+              : 'border-stroke-subtle',
+          )}
+        >
+          <input
+            type="number"
+            inputMode="decimal"
+            min={min}
+            max={max}
+            step={step}
+            value={draft ?? clamped.toFixed(decimals)}
+            onFocus={(e) => {
+              setFocused(true);
+              e.currentTarget.select();
+            }}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={(e) => {
+              setFocused(false);
+              if (draft !== null) commitDraft(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitDraft(e.currentTarget.value);
+                e.currentTarget.blur();
+              } else if (e.key === 'Escape') {
+                setDraft(null);
+                e.currentTarget.blur();
+              }
+            }}
+            className={cn(
+              'w-14 bg-transparent border-0 outline-none text-mono-readout text-xs text-text-primary text-right',
+              'px-2 py-0.5',
+              '[&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden',
+              '[appearance:textfield]',
+            )}
+          />
+          <span className="pr-2 text-mono-label text-[10px] text-text-tertiary">
+            {unit}
+          </span>
+        </div>
+      </div>
+      <Slider
+        value={[clamped]}
+        min={min}
+        max={max}
+        step={step}
+        snapDefault={defaultValue}
         onValueChange={([v]) => onChange(v)}
       />
     </div>
