@@ -172,7 +172,7 @@ export function FrameControls() {
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1 text-xs">
                   Hanging Hole
-                  <InfoTip text="Adds a thin spot at the top center of the frame for wall mounting. Punch through after printing. Sits inside the top border." />
+                  <InfoTip text="Adds a circular cutout for wall mounting. Use the Position X / Y sliders to place it anywhere on the print." />
                 </span>
                 <Switch
                   checked={params.hangingHoleEnabled}
@@ -180,22 +180,56 @@ export function FrameControls() {
                 />
               </div>
               {params.hangingHoleEnabled && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span>Hole Diameter</span>
-                    <span className="text-mono-readout text-text-tertiary">
-                      {params.hangingHoleDiameter} mm
-                    </span>
+                <>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Position X</span>
+                      <span className="text-mono-readout text-text-tertiary">
+                        {Math.round(params.hangingHoleX * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[params.hangingHoleX]}
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      snapDefault={DEFAULT_PARAMS.hangingHoleX}
+                      onValueChange={([v]) => updateParams({ hangingHoleX: v })}
+                    />
                   </div>
-                  <Slider
-                    value={[params.hangingHoleDiameter]}
-                    min={2}
-                    max={10}
-                    step={0.5}
-                    snapDefault={DEFAULT_PARAMS.hangingHoleDiameter}
-                    onValueChange={([v]) => updateParams({ hangingHoleDiameter: v })}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Position Y</span>
+                      <span className="text-mono-readout text-text-tertiary">
+                        {Math.round(params.hangingHoleY * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[params.hangingHoleY]}
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      snapDefault={DEFAULT_PARAMS.hangingHoleY}
+                      onValueChange={([v]) => updateParams({ hangingHoleY: v })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Hole Diameter</span>
+                      <span className="text-mono-readout text-text-tertiary">
+                        {params.hangingHoleDiameter} mm
+                      </span>
+                    </div>
+                    <Slider
+                      value={[params.hangingHoleDiameter]}
+                      min={2}
+                      max={10}
+                      step={0.5}
+                      snapDefault={DEFAULT_PARAMS.hangingHoleDiameter}
+                      onValueChange={([v]) => updateParams({ hangingHoleDiameter: v })}
+                    />
+                  </div>
+                </>
               )}
             </>
           )}
@@ -247,3 +281,4 @@ function SideSlider({
     </div>
   );
 }
+

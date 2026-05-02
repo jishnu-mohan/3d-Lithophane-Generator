@@ -13,16 +13,25 @@ const MAX_UNDO = 50;
  * Older presets stored a single scalar; spread it to all four sides on load.
  */
 function migrateParams(
-  p: Partial<LithophaneParams> & { borderThickness?: number },
+  p: Partial<LithophaneParams> & {
+    borderThickness?: number;
+    hangingHoleOrientation?: 'horizontal' | 'vertical';
+  },
 ): Partial<LithophaneParams> {
+  let next: Partial<LithophaneParams> & {
+    borderThickness?: number;
+    hangingHoleOrientation?: 'horizontal' | 'vertical';
+  } = p;
+
+  // Legacy uniform borderThickness → per-side
   if (
-    typeof p.borderThickness === 'number' &&
-    p.borderThicknessTop === undefined
+    typeof next.borderThickness === 'number' &&
+    next.borderThicknessTop === undefined
   ) {
-    const v = p.borderThickness;
-    const { borderThickness: _legacy, ...rest } = p;
-    void _legacy;
-    return {
+    const v = next.borderThickness;
+    const { borderThickness: _b, ...rest } = next;
+    void _b;
+    next = {
       ...rest,
       borderThicknessTop: v,
       borderThicknessRight: v,
@@ -30,7 +39,20 @@ function migrateParams(
       borderThicknessLeft: v,
     };
   }
-  return p;
+
+  // Legacy orientation → X/Y position
+  if (
+    next.hangingHoleOrientation !== undefined &&
+    next.hangingHoleX === undefined
+  ) {
+    const { hangingHoleOrientation: orient, ...rest } = next;
+    next =
+      orient === 'vertical'
+        ? { ...rest, hangingHoleX: 0.05, hangingHoleY: 0.1 }
+        : { ...rest, hangingHoleX: 0.5, hangingHoleY: 0.05 };
+  }
+
+  return next;
 }
 
 function loadPresets(): Preset[] {
@@ -81,6 +103,8 @@ const SECTION_KEYS: Record<ParamSection, (keyof LithophaneParams)[]> = {
     'cornerRadius',
     'hangingHoleEnabled',
     'hangingHoleDiameter',
+    'hangingHoleX',
+    'hangingHoleY',
     'standTabEnabled',
   ],
   base: ['baseThickness'],

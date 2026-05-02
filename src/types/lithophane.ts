@@ -31,6 +31,10 @@ export interface LithophaneParams {
   cornerRadius: number;
   hangingHoleEnabled: boolean;
   hangingHoleDiameter: number;
+  /** 0–1 horizontal position of the hole (0 = left edge, 1 = right edge). */
+  hangingHoleX: number;
+  /** 0–1 vertical position of the hole (0 = top edge, 1 = bottom edge). */
+  hangingHoleY: number;
   standTabEnabled: boolean;
 
   // Image adjustments
@@ -72,6 +76,8 @@ export const DEFAULT_PARAMS: LithophaneParams = {
   cornerRadius: 2,
   hangingHoleEnabled: false,
   hangingHoleDiameter: 4,
+  hangingHoleX: 0.5,
+  hangingHoleY: 0.05,
   standTabEnabled: false,
 
   // Image adjustments

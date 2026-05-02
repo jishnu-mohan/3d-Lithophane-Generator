@@ -2,6 +2,12 @@ import * as THREE from 'three';
 import type { HeightmapData, LithophaneParams } from '@/types/lithophane';
 import { computeNormals } from './computeNormals';
 
+/**
+ * A heightmap cell whose value is < 0 is treated as a sentinel for "no
+ * geometry here" — used by the hanging-hole logic to punch real cutouts.
+ */
+const isSentinel = (h: number) => h < 0;
+
 export function generateFlat(
   heightmap: HeightmapData,
   params: LithophaneParams
@@ -13,7 +19,7 @@ export function generateFlat(
   const cellW = widthMM / (cols - 1);
   const cellH = heightMM / (rows - 1);
 
-  // Front face + back face + side walls
+  // Front face + back face + side walls (outer perimeter) + room for hole inner walls.
   const frontCount = rows * cols;
   const backCount = rows * cols;
   const topWall = cols;
@@ -29,13 +35,14 @@ export function generateFlat(
 
   let vi = 0;
 
-  // Front face vertices (z = thickness based on heightmap)
+  // Front face vertices. Sentinels get clamped to minThickness so orphan
+  // vertices don't sit behind the back face if anything ever indexes them.
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = c * cellW - widthMM / 2;
       const y = (rows - 1 - r) * cellH - heightMM / 2;
       const h = data[r * cols + c];
-      const z = minThickness + h * thicknessRange;
+      const z = isSentinel(h) ? minThickness : minThickness + h * thicknessRange;
 
       positions[vi * 3] = x;
       positions[vi * 3 + 1] = y;
@@ -46,9 +53,15 @@ export function generateFlat(
     }
   }
 
-  // Front face indices
+  // Front face indices — skip any quad that touches a sentinel.
   for (let r = 0; r < rows - 1; r++) {
     for (let c = 0; c < cols - 1; c++) {
+      const tlH = data[r * cols + c];
+      const trH = data[r * cols + c + 1];
+      const blH = data[(r + 1) * cols + c];
+      const brH = data[(r + 1) * cols + c + 1];
+      if (isSentinel(tlH) || isSentinel(trH) || isSentinel(blH) || isSentinel(brH)) continue;
+
       const tl = r * cols + c;
       const tr = tl + 1;
       const bl = (r + 1) * cols + c;
@@ -75,9 +88,15 @@ export function generateFlat(
     }
   }
 
-  // Back face indices (reversed winding)
+  // Back face indices (reversed winding) — same skip logic.
   for (let r = 0; r < rows - 1; r++) {
     for (let c = 0; c < cols - 1; c++) {
+      const tlH = data[r * cols + c];
+      const trH = data[r * cols + c + 1];
+      const blH = data[(r + 1) * cols + c];
+      const brH = data[(r + 1) * cols + c + 1];
+      if (isSentinel(tlH) || isSentinel(trH) || isSentinel(blH) || isSentinel(brH)) continue;
+
       const tl = backStart + r * cols + c;
       const tr = tl + 1;
       const bl = backStart + (r + 1) * cols + c;
@@ -87,7 +106,63 @@ export function generateFlat(
     }
   }
 
-  // Side walls
+  // Inner walls around hole boundaries. For every cell that is "fully body"
+  // (no sentinel corner), if any of its 4 neighbors is "any-sentinel", add a
+  // wall on the shared edge connecting front and back faces. Walls reuse the
+  // already-allocated front/back vertices.
+  const cellHasSentinel = (r: number, c: number): boolean => {
+    if (r < 0 || r >= rows - 1 || c < 0 || c >= cols - 1) return false;
+    return (
+      isSentinel(data[r * cols + c]) ||
+      isSentinel(data[r * cols + c + 1]) ||
+      isSentinel(data[(r + 1) * cols + c]) ||
+      isSentinel(data[(r + 1) * cols + c + 1])
+    );
+  };
+
+  const addInnerWall = (
+    frontTop: number,
+    frontBot: number,
+    backTop: number,
+    backBot: number,
+  ) => {
+    // Two triangles, both windings emitted so the wall reads correctly under
+    // double-sided rendering and slicers ignore winding inconsistencies.
+    indices.push(frontTop, backTop, frontBot);
+    indices.push(frontBot, backTop, backBot);
+  };
+
+  for (let r = 0; r < rows - 1; r++) {
+    for (let c = 0; c < cols - 1; c++) {
+      if (cellHasSentinel(r, c)) continue; // not a fully-body cell — its quad is skipped, walls come from neighbors
+      // Right edge: between body cell (r,c) and any-sentinel cell (r, c+1)
+      if (cellHasSentinel(r, c + 1)) {
+        const tl = r * cols + (c + 1);
+        const bl = (r + 1) * cols + (c + 1);
+        addInnerWall(tl, bl, backStart + tl, backStart + bl);
+      }
+      // Bottom edge
+      if (cellHasSentinel(r + 1, c)) {
+        const tl = (r + 1) * cols + c;
+        const tr = (r + 1) * cols + (c + 1);
+        addInnerWall(tl, tr, backStart + tl, backStart + tr);
+      }
+      // Left edge
+      if (cellHasSentinel(r, c - 1)) {
+        const tl = r * cols + c;
+        const bl = (r + 1) * cols + c;
+        addInnerWall(tl, bl, backStart + tl, backStart + bl);
+      }
+      // Top edge
+      if (cellHasSentinel(r - 1, c)) {
+        const tl = r * cols + c;
+        const tr = r * cols + (c + 1);
+        addInnerWall(tl, tr, backStart + tl, backStart + tr);
+      }
+    }
+  }
+
+  // Outer side walls
   const addWallQuad = (a: number, b: number, c: number, d: number) => {
     indices.push(a, b, c);
     indices.push(c, b, d);

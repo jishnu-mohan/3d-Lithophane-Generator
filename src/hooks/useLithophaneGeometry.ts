@@ -44,7 +44,8 @@ export function useLithophaneGeometry(): THREE.BufferGeometry | null {
         hm,
         params.hangingHoleDiameter,
         params.resolution,
-        params.borderThicknessTop,
+        params.hangingHoleX,
+        params.hangingHoleY,
       );
     }
 
